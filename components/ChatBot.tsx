@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { getFriendlyLabel, inferInquiryType, INQUIRY_ACTION_ITEMS, DOC_ITEMS } from '@/lib/utils'
 
@@ -173,10 +173,12 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
   const [top3, setTop3] = useState<{ medal: string; category: string; count: number; question: string }[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
 
-  const headerRtani = useMemo(() => randomRtani(), [open]) // eslint-disable-line react-hooks/exhaustive-deps
-  // 로딩/시스템 메시지용 르탄이 이미지 — 컴포넌트 생애주기 동안 고정
-  const loadingRtani = useMemo(() => randomRtani(), []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [sessionRtani, setSessionRtani] = useState(() => randomRtani())
   const hasChatHistory = msgs.length > 0
+
+  useEffect(() => {
+    if (open) setSessionRtani(randomRtani())
+  }, [open])
 
   useEffect(() => {
     const footer = document.querySelector('footer')
@@ -211,9 +213,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
     setMsgs(m => [...m, { type: 'user', text: q }])
     setLoading(true)
 
-    const rtaniImg = randomRtani()
     // 스트리밍 메시지 슬롯 미리 추가
-    setMsgs(m => [...m, { type: 'ai', answer: '', followUps: [], notices: [], rtaniImg, complete: false }])
+    setMsgs(m => [...m, { type: 'ai', answer: '', followUps: [], notices: [], rtaniImg: sessionRtani, complete: false }])
 
     try {
       const res = await fetch('/api/chat', {
@@ -422,7 +423,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
               <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 overflow-hidden relative z-10"
                 style={{ backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)' }}>
-                <Image src={headerRtani} alt="르탄이" width={44} height={44} className="object-contain scale-125" />
+                <Image src={sessionRtani} alt="르탄이" width={44} height={44} className="object-contain scale-125" />
               </div>
 
               <div className="flex-1 relative z-10">
@@ -444,7 +445,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
               <div className="flex-1 overflow-y-auto" style={{ background: '#FAF9F7' }}>
                 <div className="px-4 pt-5 pb-3">
                   <div className="flex items-start gap-3">
-                    <RtaniAvatar src={loadingRtani} />
+                    <RtaniAvatar src={sessionRtani} />
                     <div
                       className="rounded-2xl rounded-tl-sm px-4 py-3 text-[13px] leading-[1.7] animate-msgIn"
                       style={{
@@ -536,7 +537,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
                   if (m.type === 'system') return (
                     <div key={i} className="flex items-start gap-2 animate-msgIn">
-                      <RtaniAvatar src={loadingRtani} />
+                      <RtaniAvatar src={sessionRtani} />
                       <div
                         className="text-[13px] rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] leading-relaxed whitespace-pre-line font-medium"
                         style={{ background: '#FFFFFF', color: '#2D2D3A', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', border: '1px solid #F0F0F0' }}
@@ -553,7 +554,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                   return (
                     <div key={i} className="flex flex-col gap-2 animate-msgIn">
                       <div className="flex items-start gap-2">
-                        <RtaniAvatar src={m.rtaniImg} />
+                        <RtaniAvatar src={sessionRtani} />
                         <div className="flex flex-col gap-1 flex-1">
                           <span className="text-[11px] font-black text-[#FA0030] px-1 tracking-wide">르탄이</span>
 
@@ -673,7 +674,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                 {/* 타이핑 인디케이터 — 스트리밍 시작 전(loading) 또는 첫 chunk 대기 중(빈 answer 슬롯) */}
                 {(loading || msgs.some(m => m.type === 'ai' && m.answer === '')) && (
                   <div className="flex items-start gap-2 animate-msgIn">
-                    <RtaniAvatar src={loadingRtani} />
+                    <RtaniAvatar src={sessionRtani} />
                     <div
                       className="flex items-center gap-1 px-4 py-3.5 rounded-2xl rounded-tl-sm"
                       style={{ background: '#FFFFFF', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', border: '1px solid #F0F0F0' }}
