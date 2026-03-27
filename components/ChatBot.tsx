@@ -359,14 +359,15 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
             height: '64px',
             background: 'linear-gradient(135deg, #FA0030 0%, #C8002A 100%)',
             boxShadow: '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)',
+            transform: 'translateY(21px) translateX(-10px)',
             transition: 'transform 0.15s ease, box-shadow 0.15s ease',
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-3px)'
+            e.currentTarget.style.transform = 'translateY(18px) translateX(-10px)'
             e.currentTarget.style.boxShadow = '0 10px 32px rgba(250,0,48,0.55), 0 4px 12px rgba(0,0,0,0.18)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.transform = 'translateY(21px) translateX(-10px)'
             e.currentTarget.style.boxShadow = '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)'
           }}
         >
