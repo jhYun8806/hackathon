@@ -8,7 +8,7 @@ type Notice = { title: string; summary: string }
 type Msg =
   | { type: 'system'; text: string }
   | { type: 'user'; text: string }
-  | { type: 'ai'; answer: string; followUps: string[]; notices: Notice[]; rtaniImg: string }
+  | { type: 'ai'; answer: string; followUps: string[]; notices: Notice[]; rtaniImg: string; complete: boolean }
 
 type HistoryItem = { role: 'user' | 'assistant'; content: string }
 
@@ -211,7 +211,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
     const rtaniImg = randomRtani()
     // 스트리밍 메시지 슬롯 미리 추가
-    setMsgs(m => [...m, { type: 'ai', answer: '', followUps: [], notices: [], rtaniImg }])
+    setMsgs(m => [...m, { type: 'ai', answer: '', followUps: [], notices: [], rtaniImg, complete: false }])
 
     try {
       const res = await fetch('/api/chat', {
@@ -282,6 +282,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                   ...last,
                   answer: finalAnswer || last.answer,
                   followUps,
+                  complete: true,
                 }
               }
               return updated
@@ -637,8 +638,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                         </div>
                       )}
 
-                      {isLast && m.answer !== '' && (
-                        <div className="flex gap-2 mt-2">
+                      {isLast && m.complete && (
+                        <div className="flex gap-2 mt-2 animate-buttonReveal">
                           <button
                             className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                             style={{ border: '1px solid #E5E5E5', color: '#555', background: '#FAFAFA' }}
