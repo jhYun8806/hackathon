@@ -28,9 +28,7 @@ function categoryToQuestion(category: string): string {
 export async function GET() {
   const { data, error } = await supabase
     .from('inquiry_cache')
-    .select('category')
-    .not('category', 'is', null)
-    .neq('category', '')
+    .select('kind, category')
     .limit(10000)
 
   if (error || !data) {
@@ -39,7 +37,8 @@ export async function GET() {
 
   const counts: Record<string, number> = {}
   for (const row of data) {
-    const cat = (row.category as string).trim()
+    // kind가 있으면 우선, 없으면 category로 폴백
+    const cat = ((row.kind as string) || (row.category as string) || '').trim()
     if (cat) counts[cat] = (counts[cat] ?? 0) + 1
   }
 
