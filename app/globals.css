@@ -69,6 +69,16 @@ body {
   animation: rtanFloat 2.8s ease-in-out infinite;
 }
 
+/* ─── FAB 캐릭터 고개 까딱 ─── */
+@keyframes headNod {
+  0%, 100% { transform: rotate(-7deg); }
+  50%       { transform: rotate(7deg); }
+}
+.head-nod {
+  transform-origin: 50px 55px;
+  animation: headNod 1.2s ease-in-out infinite;
+}
+
 /* ─── FAB 생동감 링 ─── */
 @keyframes fabRing {
   0%   { transform: scale(1);    opacity: 0.6; }

@@ -71,6 +71,47 @@ function parseAnswer(text: string, onAction: (type: string) => void): React.Reac
   return <>{nodes}</>
 }
 
+// FAB 위 르탄이 캐릭터 — 고개 까딱 애니메이션
+function FabRtani() {
+  return (
+    <svg width="90" height="115" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* 몸통 (정적) */}
+      {/* 케이프 왼쪽 */}
+      <path d="M28 88 L14 118 Q22 122 30 112 L34 90Z" fill="#FA0030"/>
+      {/* 케이프 오른쪽 */}
+      <path d="M72 88 L86 118 Q78 122 70 112 L66 90Z" fill="#FA0030"/>
+      {/* 몸통 분홍 */}
+      <rect x="26" y="86" width="48" height="36" rx="5" fill="#FFCDB8"/>
+      {/* 벨트 */}
+      <rect x="26" y="98" width="48" height="13" rx="2" fill="#1A1A1A"/>
+      {/* 오른팔 올린 것 */}
+      <ellipse cx="16" cy="98" rx="9" ry="7" fill="#FFCDB8" transform="rotate(-40 16 98)"/>
+      {/* 왼팔 */}
+      <ellipse cx="84" cy="104" rx="8" ry="6" fill="#FFCDB8" transform="rotate(20 84 104)"/>
+
+      {/* 고개 까딱 그룹 */}
+      <g className="head-nod">
+        {/* 모자 */}
+        <rect x="36" y="2" width="28" height="22" rx="4" fill="#FA0030"/>
+        {/* 머리 (검정) */}
+        <rect x="8" y="18" width="84" height="68" rx="22" fill="#1A1A1A"/>
+        {/* 얼굴 (분홍) */}
+        <rect x="22" y="27" width="56" height="50" rx="10" fill="#FFCDB8"/>
+        {/* 왼쪽 눈 */}
+        <rect x="28" y="37" width="16" height="18" rx="3" fill="#1A1A1A"/>
+        {/* 오른쪽 눈 */}
+        <rect x="56" y="37" width="16" height="18" rx="3" fill="#1A1A1A"/>
+        {/* 머리카락 왼쪽 */}
+        <rect x="8" y="52" width="14" height="28" rx="5" fill="#1A1A1A"/>
+        {/* 머리카락 오른쪽 */}
+        <rect x="78" y="52" width="14" height="28" rx="5" fill="#1A1A1A"/>
+        {/* 물음표 */}
+        <text x="84" y="32" fontSize="28" fontWeight="900" fill="#FA0030" fontFamily="Arial">?</text>
+      </g>
+    </svg>
+  )
+}
+
 // 르탄이 스타일 학생 캐릭터 SVG 아바타
 function StudentAvatar() {
   return (
@@ -265,12 +306,16 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
   return (
     <>
-      {/* ── FAB ── */}
-      {/* 말풍선 */}
+      {/* ── FAB 위 캐릭터 + 말풍선 ── */}
       <div
-        className="fixed right-8 z-50 pointer-events-none"
-        style={{ bottom: `calc(${fabBottom} + 60px)` }}
+        className="fixed z-50 pointer-events-none flex flex-col items-end"
+        style={{ bottom: `calc(${fabBottom} + 60px)`, right: '1.5rem' }}
       >
+        {/* 르탄이 캐릭터 */}
+        <div className="mr-1">
+          <FabRtani />
+        </div>
+        {/* 말풍선 */}
         <div
           className="text-[12px] font-semibold text-[#2D2D3A] px-3.5 py-2 rounded-2xl whitespace-nowrap"
           style={{
