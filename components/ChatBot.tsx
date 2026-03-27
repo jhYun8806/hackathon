@@ -34,19 +34,41 @@ function randomRtani() {
   return RTANI_IMAGES[Math.floor(Math.random() * RTANI_IMAGES.length)]
 }
 
-function parseAnswer(text: string, onAction: (type: string) => void): React.ReactNode {
+const DATE_NUM_RE = /(\d{4}년|\d{1,2}월|\d{1,2}일)/g
+
+function highlightDateNums(seg: string, keyOffset: number): React.ReactNode {
+  const parts: React.ReactNode[] = []
+  let last = 0, k = keyOffset
+  DATE_NUM_RE.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = DATE_NUM_RE.exec(seg)) !== null) {
+    if (m.index > last) parts.push(seg.slice(last, m.index))
+    parts.push(<span key={k++} style={{ color: '#FA0030', fontWeight: 700 }}>{m[0]}</span>)
+    last = m.index + m[0].length
+  }
+  if (last < seg.length) parts.push(seg.slice(last))
+  return <>{parts}</>
+}
+
+function parseLine(line: string, onAction: (type: string) => void): React.ReactNode {
+  const isDateLine = line.includes('예상 지급일')
   const COMBINED = new RegExp(
     `(https?:\\/\\/[^\\s]+)|(${INQUIRY_ACTION_ITEMS.map(a => a.replace(/[/]/g, '\\/')).join('|')})`,
     'g'
   )
   const nodes: React.ReactNode[] = []
-  let last = 0
-  let key = 0
+  let last = 0, key = 0
   let match: RegExpExecArray | null
 
-  while ((match = COMBINED.exec(text)) !== null) {
-    if (match.index > last) nodes.push(text.slice(last, match.index))
+  const pushText = (seg: string) => {
+    if (!seg) return
+    nodes.push(isDateLine
+      ? <span key={`t${key++}`}>{highlightDateNums(seg, key * 100)}</span>
+      : seg)
+  }
 
+  while ((match = COMBINED.exec(line)) !== null) {
+    if (match.index > last) pushText(line.slice(last, match.index))
     if (match[1]) {
       nodes.push(
         <a key={key++} href={match[1]} target="_blank" rel="noopener noreferrer"
@@ -66,9 +88,22 @@ function parseAnswer(text: string, onAction: (type: string) => void): React.Reac
     }
     last = match.index + match[0].length
   }
+  pushText(line.slice(last))
 
-  if (last < text.length) nodes.push(text.slice(last))
-  return <>{nodes}</>
+  return isDateLine
+    ? <span style={{ textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: '#555' }}>{nodes}</span>
+    : <>{nodes}</>
+}
+
+function parseAnswer(text: string, onAction: (type: string) => void): React.ReactNode {
+  const lines = text.split('\n')
+  return (
+    <>
+      {lines.map((line, i) => (
+        <span key={i}>{i > 0 && '\n'}{parseLine(line, onAction)}</span>
+      ))}
+    </>
+  )
 }
 
 // FAB 위 르탄이 캐릭터 — 머리/몸통 분리 레이어, 물음표 포함, 70% 크기
