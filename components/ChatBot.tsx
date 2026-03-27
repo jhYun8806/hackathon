@@ -157,29 +157,100 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
     setView('chat')
     setMsgs(m => [...m, { type: 'user', text: q }])
     setLoading(true)
+
+    const rtaniImg = randomRtani()
+    // 스트리밍 메시지 슬롯 미리 추가
+    setMsgs(m => [...m, { type: 'ai', answer: '', followUps: [], notices: [], rtaniImg }])
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: q, history }),
       })
-      const data = await res.json()
-      if (data.error) throw new Error(data.error)
+      if (!res.ok || !res.body) throw new Error('응답 오류')
 
-      setMsgs(m => [...m, {
-        type: 'ai',
-        answer: data.answer,
-        followUps: data.followUps ?? [],
-        notices: data.notices ?? [],
-        rtaniImg: randomRtani(),
-      }])
-      setHistory(h => [
-        ...h,
-        { role: 'user', content: q },
-        { role: 'assistant', content: data.answer },
-      ])
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let rawAccum = ''
+      let notices: { title: string; summary: string }[] = []
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() ?? ''
+
+        for (const part of parts) {
+          if (!part.startsWith('data: ')) continue
+          let event: Record<string, unknown>
+          try { event = JSON.parse(part.slice(6)) } catch { continue }
+
+          if (event.type === 'meta') {
+            notices = (event.notices as { title: string; summary: string }[]) ?? []
+            setMsgs(m => {
+              const updated = [...m]
+              const last = updated[updated.length - 1]
+              if (last.type === 'ai') updated[updated.length - 1] = { ...last, notices }
+              return updated
+            })
+          } else if (event.type === 'chunk') {
+            rawAccum += event.text as string
+            setLoading(false)
+            // JSON answer 값을 점진적으로 추출해 표시
+            const match = rawAccum.match(/"answer"\s*:\s*"((?:[^"\\]|\\.)*)/)
+            if (match) {
+              const partial = match[1]
+                .replace(/\\n/g, '\n')
+                .replace(/\\"/g, '"')
+                .replace(/\\\\/g, '\\')
+              setMsgs(m => {
+                const updated = [...m]
+                const last = updated[updated.length - 1]
+                if (last.type === 'ai') updated[updated.length - 1] = { ...last, answer: partial }
+                return updated
+              })
+            }
+          } else if (event.type === 'done') {
+            const followUps = (event.followUps as string[]) ?? []
+            // 최종 answer를 전체 JSON에서 파싱
+            let finalAnswer = ''
+            try {
+              const parsed = JSON.parse(rawAccum.match(/\{[\s\S]*\}/)?.[0] ?? '{}')
+              finalAnswer = parsed.answer ?? ''
+            } catch { /* ignore */ }
+
+            setMsgs(m => {
+              const updated = [...m]
+              const last = updated[updated.length - 1]
+              if (last.type === 'ai') {
+                updated[updated.length - 1] = {
+                  ...last,
+                  answer: finalAnswer || last.answer,
+                  followUps,
+                }
+              }
+              return updated
+            })
+            setHistory(h => [
+              ...h,
+              { role: 'user', content: q },
+              { role: 'assistant', content: finalAnswer },
+            ])
+          } else if (event.type === 'error') {
+            throw new Error(event.message as string)
+          }
+        }
+      }
     } catch {
-      setMsgs(m => [...m, { type: 'system', text: '응답 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }])
+      setMsgs(m => {
+        // 비어있는 스트리밍 슬롯 제거 후 에러 메시지 추가
+        const filtered = m.filter(msg => !(msg.type === 'ai' && msg.answer === ''))
+        return [...filtered, { type: 'system', text: '응답 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }]
+      })
     } finally {
       setLoading(false)
     }
@@ -512,8 +583,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                   )
                 })}
 
-                {/* 타이핑 인디케이터 — 실제 르탄이 PNG 이미지 사용 */}
-                {loading && (
+                {/* 타이핑 인디케이터 — 스트리밍 시작 전(loading) 또는 첫 chunk 대기 중(빈 answer 슬롯) */}
+                {(loading || msgs.some(m => m.type === 'ai' && m.answer === '')) && (
                   <div className="flex items-start gap-2 animate-msgIn">
                     <RtaniAvatar src={loadingRtani} />
                     <div

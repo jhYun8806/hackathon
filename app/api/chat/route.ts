@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { supabase } from '@/lib/supabase'
 import { isSubsidyTimingQuery } from '@/lib/utils'
@@ -61,24 +61,21 @@ async function getExpectedPaymentDate(roundId: string): Promise<string | null> {
 
     const today = new Date()
 
-    // 오늘이 속한 단위기간 인덱스 찾기
     const currentIdx = periods.findIndex(p => {
       const start = new Date(p.startDate)
       const end = new Date(p.endDate)
       return today >= start && today <= end
     })
 
-    // 이전 단위기간 (current - 1), 없으면 가장 최근 지난 기간
     const prevIdx = currentIdx > 0 ? currentIdx - 1
       : currentIdx === -1 ? periods.filter(p => new Date(p.endDate) < today).length - 1
       : -1
 
     if (prevIdx < 0) return null
 
-    // UTC 오차 방지: 날짜 문자열에서 직접 파싱
-    const prevEndStr = periods[prevIdx].endDate.substring(0, 10) // "YYYY-MM-DD"
+    const prevEndStr = periods[prevIdx].endDate.substring(0, 10)
     const [y, m, d] = prevEndStr.split('-').map(Number)
-    const paymentDate = new Date(y, m - 1 + 1, d) // month는 0-based, +1개월
+    const paymentDate = new Date(y, m - 1 + 1, d)
 
     return `${paymentDate.getFullYear()}년 ${paymentDate.getMonth() + 1}월 ${paymentDate.getDate()}일`
   } catch {
@@ -90,100 +87,124 @@ async function getExpectedPaymentDate(roundId: string): Promise<string | null> {
 export async function POST(req: NextRequest) {
   const { query, history } = await req.json()
   if (!query?.trim()) {
-    return NextResponse.json({ error: 'query required' }, { status: 400 })
+    return new Response(JSON.stringify({ error: 'query required' }), { status: 400 })
   }
 
-  try {
-    await ensureCacheFresh()
+  const encoder = new TextEncoder()
 
-    // 유사 문의 검색
-    const keywords = query.trim().split(/\s+/).slice(0, 5)
-    const orFilter = keywords
-      .map((k: string) => `question.ilike.%${k}%,answer.ilike.%${k}%,kind.ilike.%${k}%`)
-      .join(',')
-
-    const { data: matches } = await supabase
-      .from('inquiry_cache')
-      .select('question, answer, kind, round_id')
-      .or(orFilter)
-      .limit(5)
-
-    // 관련 공지 검색
-    const noticeFilter = keywords
-      .map((k: string) => `title.ilike.%${k}%,summary.ilike.%${k}%`)
-      .join(',')
-    const { data: notices } = await supabase
-      .from('notices')
-      .select('title, summary')
-      .or(noticeFilter)
-      .limit(2)
-
-    // 훈련장려금 지급일 질문이면 unit-periods API 호출
-    let subsidyContext = ''
-    if (isSubsidyTimingQuery(query)) {
-      // 매칭 사례에서 먼저 찾고, 없으면 캐시 전체에서 round_id 있는 것 1건 조회
-      let roundId = matches?.find(m => m.round_id)?.round_id
-      if (!roundId) {
-        const { data: anyWithRound } = await supabase
-          .from('inquiry_cache')
-          .select('round_id')
-          .not('round_id', 'is', null)
-          .limit(1)
-          .single()
-        roundId = anyWithRound?.round_id
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (data: Record<string, unknown>) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
       }
-      // Redash에 roundId 컬럼 추가 전까지 폴백 사용
-      const FALLBACK_ROUND_ID = '67d0f95f735b66a72ad03cfe'
-      const paymentDate = await getExpectedPaymentDate(roundId ?? FALLBACK_ROUND_ID)
-      if (paymentDate) {
-        subsidyContext = `\n\n[훈련장려금 지급 예상일 정보]\n이전 단위기간 종료일 기준 +1개월 계산 결과: ${paymentDate} 예정`
+
+      try {
+        ensureCacheFresh()
+
+        const keywords = query.trim().split(/\s+/).slice(0, 5)
+        const orFilter = keywords
+          .map((k: string) => `question.ilike.%${k}%,answer.ilike.%${k}%,kind.ilike.%${k}%`)
+          .join(',')
+        const noticeFilter = keywords
+          .map((k: string) => `title.ilike.%${k}%,summary.ilike.%${k}%`)
+          .join(',')
+
+        // Supabase 쿼리 병렬 실행
+        const [{ data: matches }, { data: notices }] = await Promise.all([
+          supabase
+            .from('inquiry_cache')
+            .select('question, answer, kind, round_id')
+            .or(orFilter)
+            .limit(5),
+          supabase
+            .from('notices')
+            .select('title, summary')
+            .or(noticeFilter)
+            .limit(2),
+        ])
+
+        // 공지 먼저 전송 (클라이언트가 즉시 사용 가능)
+        send({ type: 'meta', notices: notices ?? [] })
+
+        // 훈련장려금 지급일 조회
+        let subsidyContext = ''
+        if (isSubsidyTimingQuery(query)) {
+          let roundId = matches?.find(m => m.round_id)?.round_id
+          if (!roundId) {
+            const { data: anyWithRound } = await supabase
+              .from('inquiry_cache')
+              .select('round_id')
+              .not('round_id', 'is', null)
+              .limit(1)
+              .single()
+            roundId = anyWithRound?.round_id
+          }
+          const FALLBACK_ROUND_ID = '67d0f95f735b66a72ad03cfe'
+          const paymentDate = await getExpectedPaymentDate(roundId ?? FALLBACK_ROUND_ID)
+          if (paymentDate) {
+            subsidyContext = `\n\n[훈련장려금 지급 예상일 정보]\n이전 단위기간 종료일 기준 +1개월 계산 결과: ${paymentDate} 예정`
+          }
+        }
+
+        const context = (matches ?? [])
+          .map((m, i) => `[사례 ${i + 1}]\n질문: ${m.question}\n답변: ${m.answer}`)
+          .join('\n\n')
+
+        const systemContext = matches && matches.length > 0
+          ? `[과거 유사 문의 사례]\n${context}`
+          : `(유사 사례 없음 - 일반적인 내배캠 행정 지식으로 답변)`
+
+        const isFirstMessage = !history || history.length === 0
+        const greetingTag = isFirstMessage ? '[첫 번째 질문]\n' : '[이어지는 질문]\n'
+
+        const messages: Anthropic.MessageParam[] = [
+          ...(history ?? []),
+          { role: 'user', content: `${greetingTag}${systemContext}${subsidyContext}\n\n[수강생 질문]\n${query}` },
+        ]
+
+        // Claude 스트리밍
+        let fullText = ''
+        const aiStream = anthropic.messages.stream({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1024,
+          system: SYSTEM_PROMPT,
+          messages,
+        })
+
+        for await (const event of aiStream) {
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta.type === 'text_delta'
+          ) {
+            fullText += event.delta.text
+            send({ type: 'chunk', text: event.delta.text })
+          }
+        }
+
+        // 완성된 JSON에서 followUps 파싱 후 전송
+        let followUps: string[] = []
+        try {
+          const parsed = JSON.parse(fullText.match(/\{[\s\S]*\}/)?.[0] ?? '{}')
+          followUps = Array.isArray(parsed.followUps) ? parsed.followUps.slice(0, 3) : []
+        } catch { /* ignore */ }
+
+        send({ type: 'done', followUps })
+      } catch (e) {
+        console.error('[chat]', e)
+        send({ type: 'error', message: e instanceof Error ? e.message : 'AI 응답 생성 실패' })
+      } finally {
+        controller.close()
       }
-    }
+    },
+  })
 
-    // Claude 메시지 구성
-    const context = (matches ?? [])
-      .map((m, i) => `[사례 ${i + 1}]\n질문: ${m.question}\n답변: ${m.answer}`)
-      .join('\n\n')
-
-    const systemContext = matches && matches.length > 0
-      ? `[과거 유사 문의 사례]\n${context}`
-      : `(유사 사례 없음 - 일반적인 내배캠 행정 지식으로 답변)`
-
-    const isFirstMessage = !history || history.length === 0
-    const greetingTag = isFirstMessage ? '[첫 번째 질문]\n' : '[이어지는 질문]\n'
-
-    const messages: Anthropic.MessageParam[] = [
-      ...(history ?? []),
-      { role: 'user', content: `${greetingTag}${systemContext}${subsidyContext}\n\n[수강생 질문]\n${query}` },
-    ]
-
-    const aiRes = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages,
-    })
-
-    const raw = aiRes.content[0].type === 'text' ? aiRes.content[0].text : '{}'
-
-    let answer = ''
-    let followUps: string[] = []
-    try {
-      const parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}')
-      answer = parsed.answer ?? raw
-      followUps = Array.isArray(parsed.followUps) ? parsed.followUps.slice(0, 3) : []
-    } catch {
-      answer = raw
-    }
-
-    return NextResponse.json({ answer, followUps, notices: notices ?? [] })
-  } catch (e) {
-    console.error('[chat]', e)
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'AI 응답 생성 실패' },
-      { status: 500 }
-    )
-  }
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
 }
 
 async function ensureCacheFresh() {
