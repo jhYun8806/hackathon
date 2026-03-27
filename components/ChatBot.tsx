@@ -538,6 +538,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
                   const isLast = i === lastAiIdx
 
+                  if (m.answer === '') return null
+
                   return (
                     <div key={i} className="flex flex-col gap-2 animate-msgIn">
                       <div className="flex items-start gap-2">
