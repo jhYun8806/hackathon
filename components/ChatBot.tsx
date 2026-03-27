@@ -317,59 +317,62 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
   return (
     <>
-      {/* ── FAB 위 캐릭터 + 말풍선 ── */}
+      {/* ── 말풍선 + 캐릭터 + FAB 단일 래퍼 ── */}
       <div
-        className="fixed z-50 pointer-events-none flex flex-col items-end"
-        style={{ bottom: `calc(${fabBottom} + 72px)`, right: '0.7rem' }}
+        className="fixed z-50 flex flex-col items-end"
+        style={{ bottom: fabBottom, right: '0.7rem', gap: '30px', transition: 'bottom 0.2s ease' }}
       >
-        {/* 말풍선 — 캐릭터 머리 위 */}
-        <div
-          className="text-[12px] font-semibold text-[#2D2D3A] px-3.5 py-2 rounded-2xl whitespace-nowrap"
+        {/* 말풍선 + 꼬리 */}
+        <div className="pointer-events-none flex flex-col items-end">
+          <div
+            className="text-[12px] font-semibold text-[#2D2D3A] px-3.5 py-2 rounded-2xl whitespace-nowrap"
+            style={{
+              background: '#FFFFFF',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              border: '1px solid #EBEBEB',
+            }}
+          >
+            대화형 자동 응답 어시스턴트 &apos;르탄이&apos;가 대답해드려요!
+          </div>
+          <div className="flex justify-end pr-8">
+            <div style={{
+              width: 0, height: 0,
+              borderLeft: '7px solid transparent',
+              borderRight: '7px solid transparent',
+              borderTop: '7px solid #FFFFFF',
+              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.08))',
+            }} />
+          </div>
+        </div>
+
+        {/* 르탄이 캐릭터 */}
+        <div className="pointer-events-none">
+          <FabRtani />
+        </div>
+
+        {/* 문의하기 FAB 버튼 */}
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center justify-center text-white font-bold text-[13px] leading-snug rounded-full fab-ring"
           style={{
-            background: '#FFFFFF',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-            border: '1px solid #EBEBEB',
+            width: '64px',
+            height: '64px',
+            background: 'linear-gradient(135deg, #FA0030 0%, #C8002A 100%)',
+            boxShadow: '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)',
+            transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'translateY(-3px)'
+            e.currentTarget.style.boxShadow = '0 10px 32px rgba(250,0,48,0.55), 0 4px 12px rgba(0,0,0,0.18)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)'
           }}
         >
-          대화형 자동 응답 어시스턴트 &apos;르탄이&apos;가 대답해드려요!
-        </div>
-        {/* 말풍선 꼬리 — 아래 방향 */}
-        <div className="flex justify-end pr-8">
-          <div style={{
-            width: 0, height: 0,
-            borderLeft: '7px solid transparent',
-            borderRight: '7px solid transparent',
-            borderTop: '7px solid #FFFFFF',
-            filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.08))',
-          }} />
-        </div>
-        {/* 르탄이 캐릭터 */}
-        <FabRtani />
+          문의<br />하기
+        </button>
       </div>
-
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed right-8 z-50 flex items-center justify-center text-white font-bold text-[13px] leading-snug rounded-full fab-ring"
-        style={{
-          bottom: fabBottom,
-          width: '64px',
-          height: '64px',
-          background: 'linear-gradient(135deg, #FA0030 0%, #C8002A 100%)',
-          boxShadow: '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)',
-          transition: 'bottom 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease',
-          position: 'fixed',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = 'translateY(-3px)'
-          e.currentTarget.style.boxShadow = '0 10px 32px rgba(250,0,48,0.55), 0 4px 12px rgba(0,0,0,0.18)'
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'translateY(0)'
-          e.currentTarget.style.boxShadow = '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)'
-        }}
-      >
-        문의<br />하기
-      </button>
 
       {open && (
         <div
