@@ -295,9 +295,11 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
 
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-8 z-50 flex items-center gap-2.5 text-white font-bold text-sm px-5 py-3.5 rounded-full fab-ring"
+        className="fixed right-8 z-50 flex items-center justify-center text-white font-bold text-[13px] leading-snug rounded-full fab-ring"
         style={{
           bottom: fabBottom,
+          width: '64px',
+          height: '64px',
           background: 'linear-gradient(135deg, #FA0030 0%, #C8002A 100%)',
           boxShadow: '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)',
           transition: 'bottom 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease',
@@ -312,11 +314,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
           e.currentTarget.style.boxShadow = '0 6px 24px rgba(250,0,48,0.45), 0 2px 8px rgba(0,0,0,0.15)'
         }}
       >
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/60" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-white/90" />
-        </span>
-        문의하기
+        문의<br />하기
       </button>
 
       {open && (
