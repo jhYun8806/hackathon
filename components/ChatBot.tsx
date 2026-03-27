@@ -316,7 +316,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
       {/* ── FAB 위 캐릭터 + 말풍선 ── */}
       <div
         className="fixed z-50 pointer-events-none flex flex-col items-end"
-        style={{ bottom: `calc(${fabBottom} + 60px)`, right: '1.5rem' }}
+        style={{ top: 'calc(510px)', right: '0.7rem' }}
       >
         {/* 말풍선 — 캐릭터 머리 위 */}
         <div
