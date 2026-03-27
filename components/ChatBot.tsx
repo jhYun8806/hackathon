@@ -71,30 +71,30 @@ function parseAnswer(text: string, onAction: (type: string) => void): React.Reac
   return <>{nodes}</>
 }
 
-// FAB 위 르탄이 캐릭터 — 원본 PNG를 머리/몸통 레이어로 분리해 머리만 까딱
+// FAB 위 르탄이 캐릭터 — 머리/몸통 분리 레이어, 물음표 포함, 70% 크기
 function FabRtani() {
-  // Group 11.png: 정면 포즈, 머리가 이미지 상단 ~58% 차지
+  // Group 11.png 기준: 머리(모자~턱)가 상단 62%, 몸통이 하단 55% (어깨에서 살짝 겹침)
   const src = '/rtani/Group 11.png'
-  const W = 90
-  const H = 110
-  // 목 위치: 이미지 높이의 58% 지점
-  const neckPct = 58
+  const W = 63   // 90 * 0.7
+  const H = 77   // 110 * 0.7
+  const neckPct = 62  // 목/어깨 경계 %
 
   return (
-    <div style={{ position: 'relative', width: W, height: H }}>
+    // 물음표 공간 확보를 위해 오른쪽 여유 추가
+    <div style={{ position: 'relative', width: W + 22, height: H }}>
       {/* 몸통 레이어 — 정적 */}
       <Image
         src={src} alt="" width={W} height={H}
         style={{
           position: 'absolute', top: 0, left: 0,
-          clipPath: `inset(${neckPct}% 0 0 0)`,
+          clipPath: `inset(${neckPct - 4}% 0 0 0)`,
           objectFit: 'contain',
         }}
       />
-      {/* 머리 레이어 — 목 기준 까딱 */}
+      {/* 머리 레이어 — 목 기준 까딱 (물음표 포함) */}
       <div
         style={{
-          position: 'absolute', top: 0, left: 0,
+          position: 'absolute', top: 0, left: 0, width: W, height: H,
           transformOrigin: `50% ${neckPct}%`,
           animation: 'headNod 1.3s ease-in-out infinite',
         }}
@@ -106,6 +106,14 @@ function FabRtani() {
             objectFit: 'contain',
           }}
         />
+        {/* 물음표 — 참고 이미지 기준 머리 오른쪽 상단 */}
+        <svg
+          style={{ position: 'absolute', top: '4%', right: '-20px' }}
+          width="22" height="28" viewBox="0 0 22 28" fill="none"
+        >
+          <text x="1" y="20" fontSize="24" fontWeight="900" fill="#FA0030"
+            fontFamily="'Arial Black', Arial, sans-serif" letterSpacing="-1">?</text>
+        </svg>
       </div>
     </div>
   )
@@ -310,11 +318,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
         className="fixed z-50 pointer-events-none flex flex-col items-end"
         style={{ bottom: `calc(${fabBottom} + 60px)`, right: '1.5rem' }}
       >
-        {/* 르탄이 캐릭터 */}
-        <div className="mr-1">
-          <FabRtani />
-        </div>
-        {/* 말풍선 */}
+        {/* 말풍선 — 캐릭터 머리 위 */}
         <div
           className="text-[12px] font-semibold text-[#2D2D3A] px-3.5 py-2 rounded-2xl whitespace-nowrap"
           style={{
@@ -325,8 +329,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
         >
           대화형 자동 응답 어시스턴트 &apos;르탄이&apos;가 대답해드려요!
         </div>
-        {/* 말풍선 꼬리 */}
-        <div className="flex justify-end pr-6">
+        {/* 말풍선 꼬리 — 아래 방향 */}
+        <div className="flex justify-end pr-8">
           <div style={{
             width: 0, height: 0,
             borderLeft: '7px solid transparent',
@@ -335,6 +339,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
             filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.08))',
           }} />
         </div>
+        {/* 르탄이 캐릭터 */}
+        <FabRtani />
       </div>
 
       <button
