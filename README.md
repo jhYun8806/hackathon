@@ -85,32 +85,6 @@ Redash 쿼리 6832 (MongoDB 행정 답변 DB)
 
 ---
 
-## 로컬 실행
-
-```bash
-# 환경 변수 설정
-cp .env.example .env.local
-# .env.local에 아래 값 입력
-
-npm install
-npm run dev        # http://localhost:3000
-npm test           # 테스트 실행
-```
-
-**필요 환경 변수**
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-ANTHROPIC_API_KEY=
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-REDASH_URL=
-REDASH_QUERY_ID=
-REDASH_API_KEY=
-```
-
----
-
 ## 테스트
 
 ```bash
