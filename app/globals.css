@@ -71,12 +71,8 @@ body {
 
 /* ─── FAB 캐릭터 고개 까딱 ─── */
 @keyframes headNod {
-  0%, 100% { transform: rotate(-7deg); }
-  50%       { transform: rotate(7deg); }
-}
-.head-nod {
-  transform-origin: 50px 55px;
-  animation: headNod 1.2s ease-in-out infinite;
+  0%, 100% { transform: rotate(-6deg); }
+  50%       { transform: rotate(6deg); }
 }
 
 /* ─── FAB 생동감 링 ─── */

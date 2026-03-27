@@ -71,44 +71,43 @@ function parseAnswer(text: string, onAction: (type: string) => void): React.Reac
   return <>{nodes}</>
 }
 
-// FAB 위 르탄이 캐릭터 — 고개 까딱 애니메이션
+// FAB 위 르탄이 캐릭터 — 원본 PNG를 머리/몸통 레이어로 분리해 머리만 까딱
 function FabRtani() {
-  return (
-    <svg width="90" height="115" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* 몸통 (정적) */}
-      {/* 케이프 왼쪽 */}
-      <path d="M28 88 L14 118 Q22 122 30 112 L34 90Z" fill="#FA0030"/>
-      {/* 케이프 오른쪽 */}
-      <path d="M72 88 L86 118 Q78 122 70 112 L66 90Z" fill="#FA0030"/>
-      {/* 몸통 분홍 */}
-      <rect x="26" y="86" width="48" height="36" rx="5" fill="#FFCDB8"/>
-      {/* 벨트 */}
-      <rect x="26" y="98" width="48" height="13" rx="2" fill="#1A1A1A"/>
-      {/* 오른팔 올린 것 */}
-      <ellipse cx="16" cy="98" rx="9" ry="7" fill="#FFCDB8" transform="rotate(-40 16 98)"/>
-      {/* 왼팔 */}
-      <ellipse cx="84" cy="104" rx="8" ry="6" fill="#FFCDB8" transform="rotate(20 84 104)"/>
+  // Group 11.png: 정면 포즈, 머리가 이미지 상단 ~58% 차지
+  const src = '/rtani/Group 11.png'
+  const W = 90
+  const H = 110
+  // 목 위치: 이미지 높이의 58% 지점
+  const neckPct = 58
 
-      {/* 고개 까딱 그룹 */}
-      <g className="head-nod">
-        {/* 모자 */}
-        <rect x="36" y="2" width="28" height="22" rx="4" fill="#FA0030"/>
-        {/* 머리 (검정) */}
-        <rect x="8" y="18" width="84" height="68" rx="22" fill="#1A1A1A"/>
-        {/* 얼굴 (분홍) */}
-        <rect x="22" y="27" width="56" height="50" rx="10" fill="#FFCDB8"/>
-        {/* 왼쪽 눈 */}
-        <rect x="28" y="37" width="16" height="18" rx="3" fill="#1A1A1A"/>
-        {/* 오른쪽 눈 */}
-        <rect x="56" y="37" width="16" height="18" rx="3" fill="#1A1A1A"/>
-        {/* 머리카락 왼쪽 */}
-        <rect x="8" y="52" width="14" height="28" rx="5" fill="#1A1A1A"/>
-        {/* 머리카락 오른쪽 */}
-        <rect x="78" y="52" width="14" height="28" rx="5" fill="#1A1A1A"/>
-        {/* 물음표 */}
-        <text x="84" y="32" fontSize="28" fontWeight="900" fill="#FA0030" fontFamily="Arial">?</text>
-      </g>
-    </svg>
+  return (
+    <div style={{ position: 'relative', width: W, height: H }}>
+      {/* 몸통 레이어 — 정적 */}
+      <Image
+        src={src} alt="" width={W} height={H}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          clipPath: `inset(${neckPct}% 0 0 0)`,
+          objectFit: 'contain',
+        }}
+      />
+      {/* 머리 레이어 — 목 기준 까딱 */}
+      <div
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          transformOrigin: `50% ${neckPct}%`,
+          animation: 'headNod 1.3s ease-in-out infinite',
+        }}
+      >
+        <Image
+          src={src} alt="르탄이" width={W} height={H}
+          style={{
+            clipPath: `inset(0 0 ${100 - neckPct}% 0)`,
+            objectFit: 'contain',
+          }}
+        />
+      </div>
+    </div>
   )
 }
 
