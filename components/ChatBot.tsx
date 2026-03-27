@@ -161,12 +161,6 @@ function RtaniAvatar({ src }: { src: string }) {
   )
 }
 
-// 전체 문의 데이터 분석 기준 TOP3 (훈련장려금 826건 > 출석/공가 713건 > 기기대여 요청 1,896건)
-const TOP3_QUESTIONS = [
-  { medal: '🥇', rank: 1, question: '훈련장려금은 언제 나와요?', count: 826 },
-  { medal: '🥈', rank: 2, question: '출석 공가 신청은 어떻게 하나요?', count: 713 },
-  { medal: '🥉', rank: 3, question: '기기 대여 신청하고 싶어요', count: 511 },
-]
 
 export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => void }) {
   const [open, setOpen] = useState(false)
@@ -176,6 +170,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [fabBottom, setFabBottom] = useState('2rem')
+  const [top3, setTop3] = useState<{ medal: string; category: string; count: number; question: string }[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
 
   const headerRtani = useMemo(() => randomRtani(), [open]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -195,6 +190,13 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
     }, { threshold: Array.from({ length: 21 }, (_, i) => i / 20) })
     observer.observe(footer)
     return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/top-questions')
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d.top3)) setTop3(d.top3) })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -320,7 +322,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
       {/* ── 말풍선 + 캐릭터 + FAB 단일 래퍼 ── */}
       <div
         className="fixed z-50 flex flex-col items-end"
-        style={{ bottom: fabBottom, right: '0.7rem', gap: '30px', transition: 'bottom 0.2s ease' }}
+        style={{ bottom: '20px', right: '1.7rem', gap: '30px' }}
       >
         {/* 말풍선 + 꼬리 */}
         <div className="pointer-events-none flex flex-col items-end">
@@ -487,7 +489,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                 <div className="px-4 pb-5">
                   <p className="text-[10px] font-black text-gray-400 mb-2.5 tracking-widest uppercase">자주 묻는 질문 TOP 3</p>
                   <div className="flex flex-col gap-1.5">
-                    {TOP3_QUESTIONS.map(({ medal, question }) => (
+                    {top3.map(({ medal, question }) => (
                       <button
                         key={question}
                         onClick={() => send(question)}
@@ -695,7 +697,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.nativeEvent.isComposing && send()}
                 disabled={loading}
-                placeholder="예: 훈련장려금 신청은 어떻게 하나요?"
+                placeholder="예: 훈련장려금 언제 받을 수 있나요?"
                 className="flex-1 text-sm outline-none transition-all disabled:cursor-not-allowed"
                 style={{
                   background: '#F7F6F4',
