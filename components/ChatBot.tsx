@@ -119,27 +119,30 @@ function FabRtani() {
   )
 }
 
-// 르탄이 스타일 학생 캐릭터 SVG 아바타
+// 르탄이 스타일 학생 캐릭터 — 블록형 flat 디자인, 인디고 계열
 function StudentAvatar() {
   return (
     <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden"
-      style={{ border: '1.5px solid #C7D7F4', boxShadow: '0 2px 8px rgba(99,130,220,0.18)' }}>
+      style={{ border: '1.5px solid #C7D7F4', boxShadow: '0 2px 8px rgba(79,70,229,0.18)' }}>
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* 배경 */}
         <rect width="32" height="32" fill="#EEF2FF"/>
-        <ellipse cx="16" cy="18" rx="9" ry="10" fill="#FFD6A5"/>
-        <path d="M7 16 Q7 7 16 7 Q25 7 25 16 Q24 10 16 9 Q8 10 7 16Z" fill="#3B2F1E"/>
-        <path d="M7 16 Q6 12 7.5 10 Q7 14 8 16Z" fill="#3B2F1E"/>
-        <path d="M25 16 Q26 12 24.5 10 Q25 14 24 16Z" fill="#3B2F1E"/>
-        <rect x="7" y="12" width="18" height="3" rx="1.5" fill="#4F46E5"/>
-        <rect x="13" y="8" width="6" height="5" rx="1" fill="#4F46E5"/>
-        <rect x="14.5" y="6" width="3" height="2.5" rx="0.75" fill="#4F46E5"/>
-        <ellipse cx="12.5" cy="19" rx="1.3" ry="1.5" fill="#3B2F1E"/>
-        <ellipse cx="19.5" cy="19" rx="1.3" ry="1.5" fill="#3B2F1E"/>
-        <circle cx="13.1" cy="18.3" r="0.5" fill="white"/>
-        <circle cx="20.1" cy="18.3" r="0.5" fill="white"/>
-        <ellipse cx="10.5" cy="21.5" rx="2" ry="1.2" fill="#FFB3B3" fillOpacity="0.5"/>
-        <ellipse cx="21.5" cy="21.5" rx="2" ry="1.2" fill="#FFB3B3" fillOpacity="0.5"/>
-        <path d="M13.5 23 Q16 25.5 18.5 23" stroke="#C47A52" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+        {/* 졸업 모자 (인디고) */}
+        <rect x="11" y="3" width="10" height="7" rx="1.5" fill="#4338CA"/>
+        {/* 머리 (검정 — 르탄이와 동일한 둥근사각형) */}
+        <rect x="5" y="8" width="22" height="17" rx="7" fill="#1A1A1A"/>
+        {/* 얼굴 (르탄이와 동일한 살색) */}
+        <rect x="9" y="11" width="14" height="12" rx="3" fill="#FFCDB8"/>
+        {/* 왼쪽 눈 (블록형) */}
+        <rect x="10.5" y="14" width="4" height="4.5" rx="1" fill="#1A1A1A"/>
+        {/* 오른쪽 눈 (블록형) */}
+        <rect x="17.5" y="14" width="4" height="4.5" rx="1" fill="#1A1A1A"/>
+        {/* 머리카락 왼쪽 */}
+        <rect x="5" y="13" width="4" height="7" rx="2" fill="#1A1A1A"/>
+        {/* 머리카락 오른쪽 */}
+        <rect x="23" y="13" width="4" height="7" rx="2" fill="#1A1A1A"/>
+        {/* 몸통 (인디고) */}
+        <rect x="9" y="25" width="14" height="7" rx="2" fill="#4338CA"/>
       </svg>
     </div>
   )
