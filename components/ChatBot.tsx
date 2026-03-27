@@ -266,6 +266,33 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
   return (
     <>
       {/* ── FAB ── */}
+      {/* 말풍선 */}
+      <div
+        className="fixed right-8 z-50 pointer-events-none"
+        style={{ bottom: `calc(${fabBottom} + 60px)` }}
+      >
+        <div
+          className="text-[12px] font-semibold text-[#2D2D3A] px-3.5 py-2 rounded-2xl whitespace-nowrap"
+          style={{
+            background: '#FFFFFF',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+            border: '1px solid #EBEBEB',
+          }}
+        >
+          대화형 자동 응답 어시스턴트 &apos;르탄이&apos;가 대답해드려요!
+        </div>
+        {/* 말풍선 꼬리 */}
+        <div className="flex justify-end pr-6">
+          <div style={{
+            width: 0, height: 0,
+            borderLeft: '7px solid transparent',
+            borderRight: '7px solid transparent',
+            borderTop: '7px solid #FFFFFF',
+            filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.08))',
+          }} />
+        </div>
+      </div>
+
       <button
         onClick={() => setOpen(true)}
         className="fixed right-8 z-50 flex items-center gap-2.5 text-white font-bold text-sm px-5 py-3.5 rounded-full fab-ring"
@@ -289,7 +316,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white/60" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-white/90" />
         </span>
-        문의 도우미
+        문의하기
       </button>
 
       {open && (
