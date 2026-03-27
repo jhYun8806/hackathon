@@ -320,7 +320,7 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
       {/* ── FAB 위 캐릭터 + 말풍선 ── */}
       <div
         className="fixed z-50 pointer-events-none flex flex-col items-end"
-        style={{ top: 'calc(510px)', right: '0.7rem' }}
+        style={{ bottom: `calc(${fabBottom} + 72px)`, right: '0.7rem' }}
       >
         {/* 말풍선 — 캐릭터 머리 위 */}
         <div
