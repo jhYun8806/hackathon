@@ -632,8 +632,8 @@ export default function ChatBot({ onInquiry }: { onInquiry: (type: string) => vo
                         </div>
                       )}
 
-                      {isLast && (
-                        <div className="flex gap-2 mt-1 ml-11">
+                      {isLast && m.answer !== '' && (
+                        <div className="flex gap-2 mt-2">
                           <button
                             className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                             style={{ border: '1px solid #E5E5E5', color: '#555', background: '#FAFAFA' }}
